@@ -1,16 +1,9 @@
 import os
 import yaml
+import argparse
 from flask import Flask, render_template, send_from_directory, request, jsonify
 
 app = Flask(__name__)
-
-with open("default_dir.txt", mode="r", encoding="utf-8") as f:
-    default_dir = f.read().strip()
-
-VIDEO_FOLDER = os.environ.get('VIDEO_FOLDER', default_dir)
-
-if not os.path.exists(VIDEO_FOLDER):
-    raise ValueError(f"视频路径 '{VIDEO_FOLDER}' 不存在。")
 
 yaml_file = 'videos_state.yaml'
 
@@ -49,9 +42,6 @@ def load_videos_from_yaml():
 def save_videos_to_yaml(video_data):
     with open(yaml_file, 'w', encoding='utf-8') as f:
         yaml.dump(video_data, f, allow_unicode=True)
-
-
-initialize_or_update_videos()
 
 
 @app.route('/')
@@ -128,4 +118,16 @@ def video(filename):
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--root", type=str, default="/", help="文件夹根目录")
+    parser.add_argument("--port", type=str, default="5000", help="端口")
+    args = parser.parse_args()
+
+    VIDEO_FOLDER = os.environ.get('VIDEO_FOLDER', args.root)
+
+    if not os.path.exists(VIDEO_FOLDER):
+        raise ValueError(f"视频路径 '{VIDEO_FOLDER}' 不存在。")
+
+    initialize_or_update_videos()
+
+    app.run(debug=True, host="0.0.0.0", port=args.port)
