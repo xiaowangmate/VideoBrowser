@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频数据筛选器</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .video-container {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid black;
+        }
+        video {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        .video-path {
+            margin-top: 10px;
+            font-size: 12px;
+            color: #666;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="mt-4 text-center">视频筛选 - {{ foldername }}</h2>
+
+        <p class="text-center">总视频数: {{ total }}</p>
+
+        <a href="/">返回文件夹列表</a>
+
+        <form>
+            <div class="video-grid">
+                {% for video in videos %}
+                <div class="video-container">
+                    <video controls muted>
+                        <source src="{{ url_for('video', filename=video) }}" type="video/mp4">
+                        你的浏览器不支持这个视频格式
+                    </video>
+                    <div class="video-path">{{ video }}</div>
+                    <label>视频是否可用</label>
+                    <input type="checkbox" name="selected_videos" value="{{ video }}"
+                           {% if video_data[video].selected %}checked{% endif %}
+                           onchange="toggleSelection(this, '{{ video }}')">
+                </div>
+                {% endfor %}
+            </div>
+        </form>
+
+        <script>
+            function toggleSelection(checkbox, videoPath) {
+                const selected = checkbox.checked;
+
+                fetch("{{ url_for('update_video_status') }}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify({
+                        video: videoPath,
+                        selected: selected
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status !== 'success') {
+                        alert('更新失败: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+            }
+        </script>
+
+        <nav aria-label="Page navigation" style="margin-top: 20px">
+            <ul class="pagination justify-content-center">
+                {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page - 1 }}&limit={{ limit }}" aria-label="Previous">
+                        <span aria-hidden="true">上一页</span>
+                    </a >
+                </li>
+                {% endif %}
+
+                {% for i in range(1, total_pages + 1) %}
+                <li class="page-item {% if page == i %}active{% endif %}">
+                    <a class="page-link" href="?page={{ i }}&limit={{ limit }}">{{ i }}</a >
+                </li>
+                {% endfor %}
+
+                {% if page < total_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page + 1 }}&limit={{ limit }}" aria-label="Next">
+                        <span aria-hidden="true">下一页</span>
+                    </a >
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+
+        <form method="get" class="text-center mb-4">
+            <label for="limitSelect">每页显示视频：</label>
+            <select name="limit" id="limitSelect" onchange="this.form.submit()">
+                {% for i in range(1, 101) %}
+                <option value="{{ i }}" {% if i == limit %}selected{% endif %}>{{ i }}</option>
+                {% endfor %}
+            </select>
+            <label for="limitSelect" style="padding-left: 10px">个</label>
+        </form>
+
+    </div>
+</body>
+</html>

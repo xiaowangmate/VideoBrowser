@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>视频数据筛选器</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <style>
+        .folder-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .folder-container {
+            text-align: center;
+            padding: 10px;
+            border: 1px solid black;
+        }
+        .folder-container img {
+            width: 100px;
+            height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-4 text-center">视频文件夹浏览</h1>
+
+        <p class="text-center">总文件夹数: {{ total }}</p>
+
+        <div class="text-center mb-4">
+            <button class="btn btn-primary" onclick="updateVideos()">更新视频文件</button>
+        </div>
+
+        <div class="folder-grid">
+            {% for folder in folders %}
+            <div class="folder-container">
+                <a href="{{ url_for('folder', foldername=folder) }}">
+                    <img src="/static/assets/img/icons/folder.png">
+                    <p>{{ folder }}</p >
+                </a >
+            </div>
+            {% endfor %}
+        </div>
+
+        <nav aria-label="Page navigation" style="margin-top: 20px">
+            <ul class="pagination justify-content-center">
+                {% if page > 1 %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page - 1 }}&limit={{ limit }}" aria-label="Previous">
+                        <span aria-hidden="true">上一页</span>
+                    </a>
+                </li>
+                {% endif %}
+                {% for i in range(1, total_pages + 1) %}
+                <li class="page-item {% if page == i %}active{% endif %}">
+                    <a class="page-link" href="?page={{ i }}&limit={{ limit }}">{{ i }}</a>
+                </li>
+                {% endfor %}
+                {% if page < total_pages %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page + 1 }}&limit={{ limit }}" aria-label="Next">
+                        <span aria-hidden="true">下一页</span>
+                    </a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
+
+        <form method="get" class="text-center mb-4">
+            <label for="limitSelect">每页显示文件夹数：</label>
+            <select name="limit" id="limitSelect" onchange="this.form.submit()">
+                {% for i in range(1, 101) %}
+                <option value="{{ i }}" {% if i == limit %}selected{% endif %}>{{ i }}</option>
+                {% endfor %}
+            </select>
+            <label for="limitSelect" style="padding-left: 10px">个</label>
+        </form>
+    </div>
+
+    <script>
+        function updateVideos() {
+            fetch("{{ url_for('update_videos') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message); // 显示更新结果
+                if (data.status === 'success') {
+                    location.reload(); // 如果有新视频则重新加载页面
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
