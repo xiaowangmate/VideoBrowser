@@ -5,7 +5,7 @@ from flask import Flask, render_template, send_from_directory, request, jsonify
 
 app = Flask(__name__)
 
-yaml_file = '../VideoBrowser/videos_state.yaml'
+yaml_file = 'videos_state.yaml'
 
 
 def initialize_or_update_videos():
