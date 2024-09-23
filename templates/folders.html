@@ -89,9 +89,9 @@
             })
             .then(response => response.json())
             .then(data => {
-                alert(data.message); // 显示更新结果
+                alert(data.message);
                 if (data.status === 'success') {
-                    location.reload(); // 如果有新视频则重新加载页面
+                    location.reload();
                 }
             })
             .catch(error => {

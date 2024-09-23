@@ -1,6 +1,6 @@
 import os
 import yaml
-from flask import Flask, render_template, send_from_directory, request, jsonify, redirect, url_for
+from flask import Flask, render_template, send_from_directory, request, jsonify
 
 app = Flask(__name__)
 
